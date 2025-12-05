@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>💰 Multi-Bot Earnings Dashboard</title>
+    <style>
+        /* KEEP ALL YOUR EXISTING CSS - DON'T CHANGE */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, sans-serif; }
+        body { background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%); min-height: 100vh; padding: 20px; display: flex; justify-content: center; align-items: center; }
+        .container { max-width: 450px; width: 100%; }
+        .card { background: rgba(255, 255, 255, 0.95); border-radius: 20px; padding: 25px; margin-bottom: 15px; box-shadow: 0 15px 35px rgba(0,0,0,0.2); animation: fadeIn 0.5s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .header { text-align: center; margin-bottom: 20px; }
+        .header h1 { color: #2c3e50; font-size: 28px; margin-bottom: 5px; }
+        .user-id { color: #7f8c8d; font-size: 14px; background: #f8f9fa; padding: 5px 15px; border-radius: 20px; display: inline-block; margin-top: 10px; }
+        .balance-card { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-align: center; padding: 30px 25px; }
+        .balance-label { font-size: 16px; opacity: 0.9; margin-bottom: 10px; }
+        .balance-amount { font-size: 52px; font-weight: 800; margin: 10px 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.2); }
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 25px 0; }
+        .stat-box { background: rgba(255, 255, 255, 0.15); padding: 15px; border-radius: 12px; text-align: center; backdrop-filter: blur(5px); }
+        .stat-value { font-size: 20px; font-weight: bold; margin-bottom: 5px; }
+        .stat-label { font-size: 11px; opacity: 0.9; text-transform: uppercase; letter-spacing: 0.5px; }
+        .btn { width: 100%; padding: 18px; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s; margin: 10px 0; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .btn-primary { background: linear-gradient(135deg, #00b09b 0%, #96c93d 100%); color: white; }
+        .btn-secondary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        .referral-section { background: #f8f9fa; border-radius: 15px; padding: 20px; margin: 20px 0; border: 2px dashed #dee2e6; }
+        .referral-title { color: #2c3e50; font-size: 18px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
+        .referral-link-box { background: white; padding: 15px; border-radius: 10px; margin: 15px 0; border: 1px solid #e9ecef; word-break: break-all; font-family: 'Courier New', monospace; font-size: 14px; color: #495057; text-align: center; }
+        .copy-btn { background: #6c757d; color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 500; width: 100%; margin-top: 10px; }
+        .telegram-btn { background: #0088cc; color: white; border: none; padding: 15px; border-radius: 10px; cursor: pointer; font-size: 16px; font-weight: 600; width: 100%; margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .loading { text-align: center; padding: 60px 20px; }
+        .spinner { border: 4px solid rgba(255, 255, 255, 0.3); border-top: 4px solid #667eea; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 0 auto 20px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <p style="color: white; margin-top: 20px;">Loading...</p>
+        </div>
+        <div id="app"></div>
+    </div>
+
+<script>
+// =============== UNIVERSAL SYSTEM FOR ALL BOTS ===============
+const MASTER_STORAGE_KEY = 'multi_bot_earnings_system';
+
+// =============== GUARANTEED REFERRAL CREDIT ===============
+function guaranteedReferralCredit(botToken, userId, referrerId) {
+    console.log(`🔧 UNIVERSAL CREDIT: ${userId} → ${referrerId} (Bot: ${botToken.substring(0, 10)}...)`);
+    
+    // Validate
+    if (!userId || !referrerId || userId === referrerId) {
+        return {
+            status: 'failed',
+            message: 'Invalid referral',
+            code: 'INVALID_DATA'
+        };
+    }
+    
+    // Load data for this specific bot
+    const data = loadBotData(botToken);
+    
+    // CHECK 1: Already referred?
+    if (data.users[userId] && data.users[userId].refBy) {
+        return {
+            status: 'failed',
+            message: `Already referred by ${data.users[userId].refBy}`,
+            code: 'ALREADY_REFERRED'
+        };
+    }
+    
+    // CHECK 2: Duplicate referral?
+    const refKey = `ref_${referrerId}_${userId}`;
+    if (data.referrals[refKey]) {
+        return {
+            status: 'failed',
+            message: 'Referral already processed',
+            code: 'DUPLICATE_REFERRAL'
+        };
+    }
+    
+    // ========== CREATE USERS IF NOT EXISTS ==========
+    // Create referrer if not exists
+    if (!data.users[referrerId]) {
+        data.users[referrerId] = {
+            balance: 0,
+            totalEarned: 0,
+            totalWithdrawn: 0,
+            wdToday: 0,
+            refs: 0,
+            refBy: null,
+            banned: false,
+            joinDate: new Date().toISOString(),
+            lastActive: new Date().toISOString()
+        };
+    }
+    
+    // Create user if not exists
+    if (!data.users[userId]) {
+        data.users[userId] = {
+            balance: 0,
+            totalEarned: 0,
+            totalWithdrawn: 0,
+            wdToday: 0,
+            refs: 0,
+            refBy: referrerId,  // CRITICAL: SET REFERRER
+            banned: false,
+            joinDate: new Date().toISOString(),
+            lastActive: new Date().toISOString()
+        };
+    } else {
+        // Update existing user's referrer
+        data.users[userId].refBy = referrerId;
+    }
+    
+    // ========== GIVE BONUS ==========
+    const bonusAmount = data.settings?.perRef || 3;
+    
+    // CREDIT REFERRER
+    data.users[referrerId].balance += bonusAmount;
+    data.users[referrerId].totalEarned += bonusAmount;
+    data.users[referrerId].refs += 1;
+    
+    // ========== SAVE REFERRAL RECORD ==========
+    data.referrals[refKey] = {
+        date: new Date().toISOString(),
+        amount: bonusAmount,
+        user: userId,
+        referrer: referrerId,
+        botToken: botToken.substring(0, 15) + '...'
+    };
+    
+    // Save data
+    saveBotData(botToken, data);
+    
+    console.log(`✅ CREDIT SUCCESS: ₹${bonusAmount} → ${referrerId}`);
+    console.log(`📊 New balance of ${referrerId}: ₹${data.users[referrerId].balance}`);
+    
+    return {
+        status: 'success',
+        message: `₹${bonusAmount} credited to ${referrerId}`,
+        code: 'REFERRAL_SUCCESS',
+        amount: bonusAmount,
+        user_id: userId,
+        referrer_id: referrerId,
+        referrer_balance: data.users[referrerId].balance,
+        referrer_total_refs: data.users[referrerId].refs,
+        timestamp: new Date().toISOString()
+    };
+}
+
+// =============== LOAD/SAVE DATA PER BOT ===============
+function loadBotData(botToken) {
+    const key = `${MASTER_STORAGE_KEY}_${botToken}`;
+    
+    try {
+        const saved = localStorage.getItem(key);
+        if (saved) {
+            const data = JSON.parse(saved);
+            
+            // Ensure data structure is complete
+            if (!data.users) data.users = {};
+            if (!data.referrals) data.referrals = {};
+            if (!data.settings) {
+                data.settings = {
+                    perRef: 3,
+                    minWd: 10,
+                    maxWd: 100,
+                    dailyLimit: 1,
+                    adminId: '',
+                    botName: 'EarnBot',
+                    botUsername: ''
+                };
+            }
+            if (!data.withdrawals) data.withdrawals = [];
+            
+            return data;
+        }
+    } catch (e) {
+        console.error('Error loading data:', e);
+    }
+    
+    // Return new data structure
+    return {
+        users: {},
+        referrals: {},
+        settings: {
+            perRef: 3,
+            minWd: 10,
+            maxWd: 100,
+            dailyLimit: 1,
+            adminId: '',
+            botName: 'EarnBot',
+            botUsername: ''
+        },
+        withdrawals: []
+    };
+}
+
+function saveBotData(botToken, data) {
+    const key = `${MASTER_STORAGE_KEY}_${botToken}`;
+    try {
+        localStorage.setItem(key, JSON.stringify(data));
+        return true;
+    } catch (e) {
+        console.error('Error saving data:', e);
+        return false;
+    }
+}
+
+// =============== URL PARSING ===============
+function getUrlParams() {
+    const params = {};
+    const query = window.location.search.substring(1);
+    
+    if (!query) return params;
+    
+    query.split('&').forEach(pair => {
+        const [key, value] = pair.split('=');
+        if (key && value) {
+            params[key] = decodeURIComponent(value);
+        }
+    });
+    
+    return params;
+}
+
+// =============== ROUTE HANDLER ===============
+function routeRequest() {
+    const params = getUrlParams();
+    const api = params.api;
+    const uid = params.uid;
+    const ref = params.ref;
+    const token = params.token;
+    
+    // ========== JSON API (For all bots) ==========
+    if (api === 'json' && uid && ref && token) {
+        const result = guaranteedReferralCredit(token, uid, ref);
+        
+        // Return PURE JSON
+        document.head.innerHTML = '<title>API Response</title>';
+        document.body.innerHTML = `<pre style="padding:20px;font-family:monospace;">${JSON.stringify(result, null, 2)}</pre>`;
+        document.getElementById('loading').style.display = 'none';
+        return true;
+    }
+    
+    // ========== ADDREF API ==========
+    if (api === 'addref' && uid && ref && token) {
+        const result = guaranteedReferralCredit(token, uid, ref);
+        
+        // Show simple response
+        document.getElementById('app').innerHTML = `
+            <div class="card">
+                <div class="header">
+                    <h1>${result.status === 'success' ? '✅ Success' : '⚠️ Failed'}</h1>
+                </div>
+                <div style="text-align: center; padding: 40px; font-size: 18px;">
+                    ${result.message}
+                    ${result.amount ? `<div style="margin-top: 20px; font-size: 24px; color: #27ae60;">₹${result.amount}</div>` : ''}
+                </div>
+            </div>
+        `;
+        document.getElementById('loading').style.display = 'none';
+        return true;
+    }
+    
+    // ========== USER DASHBOARD ==========
+    if (api === 'user' && uid && token) {
+        showUserDashboard(uid, token);
+        return true;
+    }
+    
+    // ========== ADMIN PANEL ==========
+    if (api === 'admin' && token) {
+        showAdminLogin(token);
+        return true;
+    }
+    
+    // ========== DEFAULT PAGE ==========
+    showDefaultPage();
+    return true;
+}
+
+// =============== USER DASHBOARD ===============
+function showUserDashboard(userId, botToken) {
+    const data = loadBotData(botToken);
+    const user = data.users[userId] || {
+        balance: 0,
+        totalEarned: 0,
+        totalWithdrawn: 0,
+        refs: 0,
+        refBy: null
+    };
+    
+    // Generate referral link
+    const botUsername = data.settings.botUsername || 'bot';
+    const referralLink = `https://t.me/${botUsername.replace('@', '')}?start=${userId}`;
+    
+    document.getElementById('app').innerHTML = `
+        <div class="card">
+            <div class="header">
+                <h1>💰 ${data.settings.botName || 'EarnBot'}</h1>
+                <div class="user-id">ID: ${userId}</div>
+                ${user.refBy ? `<div style="margin-top: 5px; font-size: 12px; color: #666;">👤 Referred by: ${user.refBy}</div>` : ''}
+            </div>
+            
+            <div class="balance-card">
+                <div class="balance-label">Available Balance</div>
+                <div class="balance-amount">₹${user.balance || 0}</div>
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <div class="stat-value">${user.refs || 0}</div>
+                        <div class="stat-label">Referrals</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value">₹${user.totalEarned || 0}</div>
+                        <div class="stat-label">Earned</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value">₹${user.totalWithdrawn || 0}</div>
+                        <div class="stat-label">Withdrawn</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="referral-section">
+                <div class="referral-title">🎯 Invite Friends & Earn ₹${data.settings.perRef || 3}</div>
+                <div class="referral-link-box">${referralLink}</div>
+                <button class="telegram-btn" onclick="window.open('${referralLink}', '_blank')">
+                    📤 Open in Telegram
+                </button>
+                <button class="copy-btn" onclick="copyToClipboard('${referralLink}')">
+                    📋 Copy Link
+                </button>
+            </div>
+            
+            <button class="btn btn-primary" onclick="alert('Withdraw feature coming soon!\\n\\nMin: ₹${data.settings.minWd || 10}\\nMax: ₹${data.settings.maxWd || 100}')">
+                💸 Withdraw Money
+            </button>
+            
+            <div style="text-align: center; margin-top: 20px; padding: 15px; background: #e8f5e9; border-radius: 10px; color: #2e7d32; font-size: 14px;">
+                💰 Earn ₹${data.settings.perRef || 3} per referral • No limit • Instant credit
+            </div>
+        </div>
+    `;
+    
+    document.getElementById('loading').style.display = 'none';
+}
+
+// =============== ADMIN PANEL ===============
+function showAdminLogin(botToken) {
+    document.getElementById('app').innerHTML = `
+        <div class="card">
+            <div class="header">
+                <h1>🔐 Admin Login</h1>
+                <div class="user-id">Bot: ${botToken.substring(0, 15)}...</div>
+            </div>
+            <input type="password" id="adminPass" placeholder="Enter password" style="width:100%;padding:15px;margin:20px 0;border-radius:10px;border:2px solid #e0e0e0;">
+            <button class="btn btn-primary" onclick="adminLogin('${botToken}')">Login</button>
+            <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 10px; font-size: 13px; color: #666;">
+                💡 Default password: <code>admin123</code><br>
+                Change in settings after login
+            </div>
+        </div>
+    `;
+    document.getElementById('loading').style.display = 'none';
+}
+
+function adminLogin(botToken) {
+    const password = document.getElementById('adminPass').value;
+    const data = loadBotData(botToken);
+    
+    // Default password check
+    if (password === 'admin123' || password === (data.settings.adminPassword || 'admin123')) {
+        showAdminPanel(botToken);
+    } else {
+        alert('Wrong password!');
+    }
+}
+
+function showAdminPanel(botToken) {
+    const data = loadBotData(botToken);
+    
+    document.getElementById('app').innerHTML = `
+        <div class="card">
+            <div class="header">
+                <h1>👑 Admin Panel</h1>
+                <div class="user-id">${data.settings.botName || 'Bot'} • ${Object.keys(data.users).length} users</div>
+            </div>
+            
+            <div style="text-align: center; margin: 20px 0;">
+                <button class="btn btn-secondary" onclick="addTestData('${botToken}')" style="margin: 5px;">
+                    ➕ Add Test User
+                </button>
+                <button class="btn btn-secondary" onclick="viewAllUsers('${botToken}')" style="margin: 5px;">
+                    👥 View Users
+                </button>
+                <button class="btn btn-primary" onclick="updateSettings('${botToken}')" style="margin: 5px;">
+                    ⚙️ Settings
+                </button>
+            </div>
+            
+            <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin-top: 20px;">
+                <h3>Quick Stats:</h3>
+                <p>• Total Users: ${Object.keys(data.users).length}</p>
+                <p>• Total Referrals: ${Object.keys(data.referrals).length}</p>
+                <p>• Referral Bonus: ₹${data.settings.perRef || 3}</p>
+            </div>
+        </div>
+    `;
+}
+
+// =============== DEFAULT PAGE ===============
+function showDefaultPage() {
+    document.getElementById('app').innerHTML = `
+        <div class="card">
+            <div class="header">
+                <h1>💰 Multi-Bot Earnings System</h1>
+                <p>Universal dashboard for all Telegram bots</p>
+            </div>
+            <div style="text-align: center; padding: 30px;">
+                <div style="font-size: 48px; margin-bottom: 20px;">🤖</div>
+                <p>Access via your Telegram bot</p>
+                <p style="font-size: 14px; color: #666; margin-top: 20px;">
+                    This system works with any bot token<br>
+                    Each bot has separate data storage
+                </p>
+            </div>
+        </div>
+    `;
+    document.getElementById('loading').style.display = 'none';
+}
+
+// =============== UTILITIES ===============
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(() => {
+        alert('✅ Link copied!');
+    });
+}
+
+// =============== INITIALIZE ===============
+window.onload = function() {
+    setTimeout(() => {
+        routeRequest();
+    }, 500);
+};
+</script>
+</body>
+  </html>
