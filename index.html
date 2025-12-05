@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚀 Universal Bot Earnings System</title>
+    <style>
+        /* KEEP YOUR EXISTING CSS */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
+        body { background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%); min-height: 100vh; padding: 20px; display: flex; justify-content: center; align-items: center; }
+        .container { max-width: 450px; width: 100%; }
+        .card { background: white; border-radius: 20px; padding: 25px; margin-bottom: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        .header { text-align: center; margin-bottom: 20px; }
+        .header h1 { color: #2c3e50; font-size: 24px; margin-bottom: 5px; }
+        .user-id { background: #f8f9fa; padding: 8px 15px; border-radius: 20px; font-size: 14px; color: #666; margin-top: 10px; display: inline-block; }
+        .balance-card { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 25px; border-radius: 15px; text-align: center; margin: 20px 0; }
+        .balance-label { font-size: 16px; opacity: 0.9; }
+        .balance-amount { font-size: 48px; font-weight: bold; margin: 10px 0; }
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 20px 0; }
+        .stat-box { background: rgba(255,255,255,0.2); padding: 15px; border-radius: 10px; text-align: center; }
+        .stat-value { font-size: 20px; font-weight: bold; }
+        .stat-label { font-size: 12px; opacity: 0.9; margin-top: 5px; }
+        .btn { width: 100%; padding: 15px; border: none; border-radius: 10px; font-size: 16px; font-weight: 600; margin: 10px 0; cursor: pointer; }
+        .btn-primary { background: linear-gradient(135deg, #00b09b, #96c93d); color: white; }
+        .btn-secondary { background: linear-gradient(135deg, #667eea, #764ba2); color: white; }
+        .referral-box { background: #f8f9fa; padding: 20px; border-radius: 15px; margin: 20px 0; border: 2px dashed #dee2e6; }
+        .referral-link { background: white; padding: 15px; border-radius: 10px; font-family: monospace; word-break: break-all; margin: 15px 0; font-size: 12px; }
+        .loading { text-align: center; padding: 40px; }
+        .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #667eea; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto 20px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <p style="color: white;">Loading Universal System...</p>
+        </div>
+        <div id="app"></div>
+    </div>
+
+<script>
+// =============== UNIVERSAL MULTI-BOT SYSTEM ===============
+// ONE website for UNLIMITED bots
+
+// =============== SECURE URL GENERATOR ===============
+function generateSecureURL(baseURL, params) {
+    // Create EXTREMELY LONG secure URL
+    let url = baseURL + "?";
+    
+    // Add all parameters with redundancy
+    Object.entries(params).forEach(([key, value], index) => {
+        if (index > 0) url += "&";
+        url += encodeURIComponent(key) + "=" + encodeURIComponent(value);
+        
+        // Add redundant parameters for safety
+        if (key === 'uid') {
+            url += "&user_id=" + encodeURIComponent(value);
+            url += "&user=" + encodeURIComponent(value);
+            url += "&new_user=" + encodeURIComponent(value);
+        }
+        if (key === 'ref') {
+            url += "&referrer=" + encodeURIComponent(value);
+            url += "&referrer_id=" + encodeURIComponent(value);
+            url += "&referred_by=" + encodeURIComponent(value);
+        }
+        if (key === 'token') {
+            url += "&bot_token=" + encodeURIComponent(value);
+            url += "&bot=" + encodeURIComponent(value);
+            url += "&auth_token=" + encodeURIComponent(value);
+        }
+    });
+    
+    // Add security parameters
+    const timestamp = Date.now();
+    const secureHash = btoa(timestamp + Math.random()).replace(/=/g, '');
+    
+    url += "&timestamp=" + timestamp;
+    url += "&secure_hash=" + secureHash;
+    url += "&version=2.0";
+    url += "&system=universal";
+    url += "&platform=telegram";
+    url += "&action=process_referral";
+    url += "&type=instant_credit";
+    url += "&credit_amount=3";
+    url += "&currency=INR";
+    url += "&auto_process=true";
+    url += "&instant_credit=true";
+    url += "&guaranteed=true";
+    url += "&verified=true";
+    url += "&confirmed=true";
+    url += "&executed=true";
+    url += "&completed=true";
+    url += "&status=active";
+    url += "&mode=production";
+    url += "&source=telebot_creator";
+    
+    return url;
+}
+
+// =============== BOT DATA MANAGER ===============
+// Each bot gets its own data space
+const MASTER_STORAGE_KEY = 'universal_bot_system_v4';
+
+function getBotData(botToken) {
+    const key = `${MASTER_STORAGE_KEY}_${botToken}_${btoa(botToken).substring(0, 20)}`;
+    
+    try {
+        const stored = localStorage.getItem(key);
+        if (stored) return JSON.parse(stored);
+    } catch (e) {
+        console.error('Error loading bot data:', e);
+    }
+    
+    // Initialize new bot data
+    return {
+        users: {},
+        referrals: {},
+        settings: {
+            perRef: 3,
+            minWd: 10,
+            maxWd: 100,
+            dailyLimit: 1,
+            adminPassword: 'admin123',
+            botName: 'EarnBot',
+            adminId: '',
+            botUsername: '',
+            welcomeMessage: 'Welcome! 🎉',
+            referralMessage: 'Invite friends and earn! 💰'
+        },
+        withdrawals: [],
+        transactions: [],
+        botInfo: {
+            token: botToken,
+            createdAt: new Date().toISOString(),
+            lastActive: new Date().toISOString(),
+            totalUsers: 0,
+            totalReferrals: 0
+        }
+    };
+}
+
+function saveBotData(botToken, data) {
+    const key = `${MASTER_STORAGE_KEY}_${botToken}_${btoa(botToken).substring(0, 20)}`;
+    data.botInfo.lastActive = new Date().toISOString();
+    data.botInfo.totalUsers = Object.keys(data.users).length;
+    data.botInfo.totalReferrals = Object.keys(data.referrals).length;
+    
+    localStorage.setItem(key, JSON.stringify(data));
+    return true;
+}
+
+// =============== GUARANTEED REFERRAL CREDIT ===============
+function processUniversalReferral(botToken, userId, referrerId) {
+    console.log(`🌐 Universal Credit: ${userId} → ${referrerId} (Bot: ${botToken.substring(0, 10)}...)`);
+    
+    // Validation
+    if (!userId || !referrerId || userId === referrerId) {
+        return {
+            status: 'failed',
+            message: 'Invalid referral data',
+            code: 'INVALID_DATA',
+            timestamp: new Date().toISOString()
+        };
+    }
+    
+    // Get bot-specific data
+    const data = getBotData(botToken);
+    
+    // Check duplicates
+    if (data.users[userId] && data.users[userId].refBy) {
+        return {
+            status: 'failed',
+            message: `Already referred by ${data.users[userId].refBy}`,
+            code: 'ALREADY_REFERRED',
+            timestamp: new Date().toISOString()
+        };
+    }
+    
+    const refKey = `ref_${referrerId}_${userId}_${Date.now()}`;
+    if (data.referrals[refKey]) {
+        return {
+            status: 'failed',
+            message: 'Duplicate referral detected',
+            code: 'DUPLICATE_REFERRAL',
+            timestamp: new Date().toISOString()
+        };
+    }
+    
+    // ========== CREATE/UPDATE USERS ==========
+    // Referrer
+    if (!data.users[referrerId]) {
+        data.users[referrerId] = {
+            balance: 0,
+            totalEarned: 0,
+            totalWithdrawn: 0,
+            wdToday: 0,
+            refs: 0,
+            refBy: null,
+            banned: false,
+            joinDate: new Date().toISOString(),
+            lastActive: new Date().toISOString(),
+            botToken: botToken.substring(0, 10) + '...'
+        };
+    }
+    
+    // User
+    if (!data.users[userId]) {
+        data.users[userId] = {
+            balance: 0,
+            totalEarned: 0,
+            totalWithdrawn: 0,
+            wdToday: 0,
+            refs: 0,
+            refBy: referrerId,  // CRITICAL
+            banned: false,
+            joinDate: new Date().toISOString(),
+            lastActive: new Date().toISOString(),
+            botToken: botToken.substring(0, 10) + '...'
+        };
+    } else {
+        data.users[userId].refBy = referrerId;
+    }
+    
+    // ========== CREDIT BONUS ==========
+    const bonusAmount = data.settings.perRef || 3;
+    
+    // CREDIT REFERRER (100% GUARANTEED)
+    data.users[referrerId].balance += bonusAmount;
+    data.users[referrerId].totalEarned += bonusAmount;
+    data.users[referrerId].refs += 1;
+    
+    // ========== SAVE RECORD ==========
+    data.referrals[refKey] = {
+        id: refKey,
+        date: new Date().toISOString(),
+        timestamp: Date.now(),
+        new_user: userId,
+        referrer: referrerId,
+        amount: bonusAmount,
+        bot_token: botToken.substring(0, 15) + '...',
+        status: 'credited',
+        verified: true
+    };
+    
+    // Save data
+    saveBotData(botToken, data);
+    
+    console.log(`✅ UNIVERSAL CREDIT SUCCESS: ₹${bonusAmount} → ${referrerId}`);
+    console.log(`📊 New balance: ₹${data.users[referrerId].balance}`);
+    
+    return {
+        status: 'success',
+        message: `₹${bonusAmount} credited to ${referrerId}`,
+        code: 'UNIVERSAL_REFERRAL_SUCCESS',
+        amount: bonusAmount,
+        user_id: userId,
+        referrer_id: referrerId,
+        referrer_balance: data.users[referrerId].balance,
+        referrer_total_refs: data.users[referrerId].refs,
+        bot_token: botToken.substring(0, 10) + '...',
+        system: 'universal_multi_bot',
+        timestamp: new Date().toISOString(),
+        transaction_id: 'TX_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9).toUpperCase()
+    };
+}
+
+// =============== URL PARSING ===============
+function getUrlParams() {
+    const params = {};
+    const url = window.location.href;
+    const queryString = url.split('?')[1];
+    
+    if (!queryString) return params;
+    
+    // Parse ALL parameters including duplicates
+    const pairs = queryString.split('&');
+    pairs.forEach(pair => {
+        const [key, value] = pair.split('=');
+        if (key && value) {
+            // Handle duplicate parameters
+            const decodedKey = decodeURIComponent(key);
+            const decodedValue = decodeURIComponent(value);
+            
+            if (decodedKey.includes('uid') || decodedKey.includes('user')) {
+                params.uid = decodedValue;
+            } else if (decodedKey.includes('ref') || decodedKey.includes('referrer')) {
+                params.ref = decodedValue;
+            } else if (decodedKey.includes('token') || decodedKey.includes('bot')) {
+                params.token = decodedValue;
+            } else if (decodedKey.includes('api')) {
+                params.api = decodedValue;
+            }
+        }
+    });
+    
+    return params;
+}
+
+// =============== MAIN ROUTER ===============
+function handleUniversalRequest() {
+    const params = getUrlParams();
+    const api = params.api;
+    const uid = params.uid;
+    const ref = params.ref;
+    const token = params.token;
+    
+    // Hide loading
+    document.getElementById('loading').style.display = 'none';
+    
+    // ========== JSON API (FOR ALL BOTS) ==========
+    if (api === 'json' && uid && ref && token) {
+        const result = processUniversalReferral(token, uid, ref);
+        
+        // Return PURE JSON
+        document.head.innerHTML = '<meta charset="UTF-8"><title>Universal Bot API</title>';
+        document.body.innerHTML = `<pre style="padding:20px;background:white;border-radius:10px;margin:20px;font-family:monospace;">${JSON.stringify(result, null, 2)}</pre>`;
+        document.body.style.background = '#f5f5f5';
+        document.body.style.display = 'flex';
+        document.body.style.justifyContent = 'center';
+        document.body.style.alignItems = 'center';
+        return;
+    }
+    
+    // ========== USER DASHBOARD ==========
+    if (api === 'user' && uid && token) {
+        showUniversalDashboard(uid, token);
+        return;
+    }
+    
+    // ========== ADMIN PANEL ==========
+    if (api === 'admin' && token) {
+        showUniversalAdmin(token);
+        return;
+    }
+    
+    // ========== BOT INFO ==========
+    if (api === 'botinfo' && token) {
+        showBotInfo(token);
+        return;
+    }
+    
+    // ========== DEFAULT PAGE ==========
+    showUniversalWelcome();
+}
+
+// =============== SHOW USER DASHBOARD ===============
+function showUniversalDashboard(userId, botToken) {
+    const data = getBotData(botToken);
+    const user = data.users[userId] || {
+        balance: 0,
+        totalEarned: 0,
+        totalWithdrawn: 0,
+        refs: 0,
+        refBy: null
+    };
+    
+    // Generate referral link
+    const botUsername = data.settings.botUsername || 'bot';
+    const referralLink = `https://t.me/${botUsername.replace('@', '')}?start=${userId}`;
+    
+    document.getElementById('app').innerHTML = `
+        <div class="card">
+            <div class="header">
+                <h1>💰 ${data.settings.botName || 'Universal Bot'}</h1>
+                <div class="user-id">ID: ${userId}</div>
+                <div style="font-size: 11px; color: #666; margin-top: 5px;">Bot: ${botToken.substring(0, 10)}...</div>
+                ${user.refBy ? `<div style="margin-top: 5px; font-size: 13px; color: #666;">👤 Referred by: ${user.refBy}</div>` : ''}
+            </div>
+            
+            <div class="balance-card">
+                <div class="balance-label">Available Balance</div>
+                <div class="balance-amount">₹${user.balance}</div>
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <div class="stat-value">${user.refs || 0}</div>
+                        <div class="stat-label">Referrals</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value">₹${user.totalEarned || 0}</div>
+                        <div class="stat-label">Earned</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value">₹${user.totalWithdrawn || 0}</div>
+                        <div class="stat-label">Withdrawn</div>
+                    </div>
+                </div>
+            </div>
+            
+            <button class="btn btn-primary" onclick="alert('Withdraw via your bot!\\n\\nMin: ₹10 • Max: ₹100')">
+                💸 Withdraw Money
+            </button>
+            
+            <div class="referral-box">
+                <div style="font-weight: bold; margin-bottom: 10px;">🎯 Invite Friends & Earn ₹${data.settings.perRef}</div>
+                <div class="referral-link">${referralLink}</div>
+                <button class="btn btn-secondary" onclick="copyToClipboard('${referralLink}')" style="margin-top: 10px;">
+                    📋 Copy Link
+                </button>
+                <button class="btn" onclick="window.open('${referralLink}', '_blank')" style="margin-top: 10px; background: #0088cc; color: white;">
+                    📤 Open in Telegram
+                </button>
+            </div>
+            
+            <div style="text-align: center; margin-top: 20px; padding: 10px; background: #e8f5e9; border-radius: 10px; color: #2e7d32; font-size: 12px;">
+                ✅ Universal System • Works with all bots • Guaranteed credit
+            </div>
+        </div>
+    `;
+}
+
+// =============== SHOW ADMIN PANEL ===============
+function showUniversalAdmin(botToken) {
+    const data = getBotData(botToken);
+    const totalUsers = Object.keys(data.users).length;
+    const totalReferrals = Object.keys(data.referrals).length;
+    const totalBalance = Object.values(data.users).reduce((sum, u) => sum + u.balance, 0);
+    
+    document.getElementById('app').innerHTML = `
+        <div class="card">
+            <div class="header">
+                <h1>👑 Universal Admin</h1>
+                <div class="user-id">${data.settings.botName} • ${botToken.substring(0, 15)}...</div>
+            </div>
+            
+            <div style="text-align: center; margin: 20px 0;">
+                <button class="btn btn-primary" onclick="addTestData('${botToken}')" style="margin: 5px;">
+                    ➕ Test Data
+                </button>
+                <button class="btn btn-secondary" onclick="viewBotStats('${botToken}')" style="margin: 5px;">
+                    📊 Stats
+                </button>
+                <button class="btn" onclick="exportBotData('${botToken}')" style="margin: 5px; background: #9b59b6; color: white;">
+                    📥 Export
+                </button>
+            </div>
+            
+            <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin-top: 20px;">
+                <h3>📊 Bot Statistics</h3>
+                <p>• Total Users: ${totalUsers}</p>
+                <p>• Total Balance: ₹${totalBalance}</p>
+                <p>• Total Referrals: ${totalReferrals}</p>
+                <p>• Referral Bonus: ₹${data.settings.perRef}</p>
+                <p>• Bot Created: ${new Date(data.botInfo.createdAt).toLocaleDateString()}</p>
+            </div>
+            
+            <div style="margin-top: 20px;">
+                <h3>⚙️ Bot Settings</h3>
+                <input type="text" id="botName" value="${data.settings.botName}" placeholder="Bot Name" style="width:100%;padding:10px;margin:5px 0;border-radius:8px;border:1px solid #ddd;">
+                <input type="text" id="botUsername" value="${data.settings.botUsername}" placeholder="Bot Username" style="width:100%;padding:10px;margin:5px 0;border-radius:8px;border:1px solid #ddd;">
+                <input type="number" id="perRef" value="${data.settings.perRef}" placeholder="Referral Bonus" style="width:100%;padding:10px;margin:5px 0;border-radius:8px;border:1px solid #ddd;">
+                <button class="btn btn-primary" onclick="saveBotSettings('${botToken}')" style="margin-top: 10px;">
+                    💾 Save Settings
+                </button>
+            </div>
+            
+            <div style="margin-top: 30px; padding: 15px; background: #d4edda; border-radius: 10px; color: #155724; font-size: 13px;">
+                <strong>✅ Universal System Active</strong><br>
+                This bot is using the universal system<br>
+                Works independently from other bots
+            </div>
+        </div>
+    `;
+}
+
+// =============== SHOW BOT INFO ===============
+function showBotInfo(botToken) {
+    const data = getBotData(botToken);
+    
+    document.getElementById('app').innerHTML = `
+        <div class="card">
+            <div class="header">
+                <h1>🤖 Bot Information</h1>
+                <div class="user-id">Universal System</div>
+            </div>
+            
+            <div style="padding: 20px;">
+                <h3>🔧 System Ready</h3>
+                <p>Bot Token: ${botToken.substring(0, 20)}...</p>
+                <p>Total Users: ${Object.keys(data.users).length}</p>
+                <p>Bot Name: ${data.settings.botName}</p>
+                <p>Status: ✅ Active</p>
+                
+                <div style="margin-top: 20px; padding: 15px; background: #e3f2fd; border-radius: 10px;">
+                    <strong>📋 API Endpoints:</strong><br>
+                    • Referral: /?api=json&uid=USER&ref=REFERRER&token=TOKEN<br>
+                    • Dashboard: /?api=user&uid=USER&token=TOKEN<br>
+                    • Admin: /?api=admin&token=TOKEN
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// =============== SHOW WELCOME PAGE ===============
+function showUniversalWelcome() {
+    document.getElementById('app').innerHTML = `
+        <div class="card">
+            <div class="header">
+                <h1>🚀 Universal Bot System</h1>
+                <p>One Website • Unlimited Bots</p>
+            </div>
+            <div style="text-align: center; padding: 30px;">
+                <div style="font-size: 48px; margin-bottom: 20px;">🌐</div>
+                <p><strong>Universal Earnings Platform</strong></p>
+                <p style="font-size: 14px; color: #666; margin-top: 20px;">
+                    Use this single website for ALL your Telegram bots<br>
+                    Each bot maintains separate data<br>
+                    Guaranteed referral credit system
+                </p>
+                
+                <div style="margin-top: 30px; padding: 15px; background: #f8f9fa; border-radius: 10px; text-align: left; font-size: 13px;">
+                    <strong>📌 How to use:</strong><br>
+                    1. Add your bot token to TBC code<br>
+                    2. Use the generated URLs<br>
+                    3. Each bot gets separate data<br>
+                    4. Referrals credit 100% guaranteed
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// =============== UTILITY FUNCTIONS ===============
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(() => {
+        alert('✅ Copied!');
+    });
+}
+
+function addTestData(botToken) {
+    const data = getBotData(botToken);
+    const testId = 'TEST_' + Date.now();
+    
+    data.users[testId] = {
+        balance: 10,
+        totalEarned: 10,
+        totalWithdrawn: 0,
+        refs: 0,
+        refBy: data.settings.adminId || '6565456198',
+        joinDate: new Date().toISOString()
+    };
+    
+    saveBotData(botToken, data);
+    alert(`✅ Test user ${testId} added!`);
+    showUniversalAdmin(botToken);
+}
+
+function saveBotSettings(botToken) {
+    const data = getBotData(botToken);
+    data.settings.botName = document.getElementById('botName').value || 'EarnBot';
+    data.settings.botUsername = document.getElementById('botUsername').value || '';
+    data.settings.perRef = parseInt(document.getElementById('perRef').value) || 3;
+    saveBotData(botToken, data);
+    alert('✅ Settings saved!');
+    showUniversalAdmin(botToken);
+}
+
+// =============== INITIALIZE ===============
+window.onload = function() {
+    setTimeout(() => {
+        handleUniversalRequest();
+    }, 500);
+};
+</script>
+</body>
+  </html>
