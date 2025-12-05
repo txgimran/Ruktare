@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>💰 Earn & Withdraw - Auto Credit System</title>
+    <style>
+        /* (KEEP ALL YOUR EXISTING CSS STYLES) */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, sans-serif; }
+        body { background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%); min-height: 100vh; padding: 20px; display: flex; justify-content: center; align-items: center; }
+        .container { max-width: 450px; width: 100%; }
+        .card { background: rgba(255, 255, 255, 0.95); border-radius: 20px; padding: 25px; margin-bottom: 15px; box-shadow: 0 15px 35px rgba(0,0,0,0.2); animation: fadeIn 0.5s ease; }
+        /* (KEEP ALL OTHER CSS STYLES FROM YOUR ORIGINAL CODE) */
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <p style="color: white; margin-top: 20px;">Loading...</p>
+        </div>
+        <div id="app"></div>
+    </div>
+
+<script>
+// =============== SUPER SECURE LONG URL SYSTEM ===============
+const SUPER_LONG_SECRET_KEY = "EARNBOT_REFERRAL_SYSTEM_2024_AUTO_CREDIT_GUARANTEED_";
+const STORAGE_KEY = SUPER_LONG_SECRET_KEY + 'MULTI_BOT_DATA';
+const DEFAULT_ADMIN_PASS = "admin123456789";
+
+// =============== AUTO-CREDIT ENGINE ===============
+function processAutoCredit(botToken, newUserId, referrerId, source = 'bot') {
+    console.log(`🔄 AUTO-CREDIT: ${newUserId} → ${referrerId} (${source})`);
+    
+    // Create secure referral ID
+    const secureRefId = SUPER_LONG_SECRET_KEY + Date.now() + "_" + Math.random().toString(36).substr(2, 9);
+    
+    // Validate inputs
+    if (!newUserId || !referrerId || newUserId === referrerId) {
+        return {
+            status: 'error',
+            code: 'INVALID_REFERRAL',
+            message: 'Invalid user or referrer ID',
+            secure_id: secureRefId
+        };
+    }
+    
+    // Get or create bot data
+    const data = getBotData(botToken);
+    
+    // CHECK 1: Prevent duplicate processing (multiple checks)
+    const duplicateKey1 = `processed_${newUserId}_${referrerId}`;
+    const duplicateKey2 = `ref_${referrerId}_to_${newUserId}`;
+    const duplicateKey3 = `credit_${newUserId}_${Date.now().toString().slice(0,8)}`;
+    
+    if (data.referrals && (data.referrals[duplicateKey1] || data.referrals[duplicateKey2])) {
+        return {
+            status: 'already_processed',
+            code: 'DUPLICATE_REFERRAL',
+            message: 'This referral was already processed before',
+            previous_amount: data.referrals[duplicateKey1]?.amount || data.referrals[duplicateKey2]?.amount,
+            secure_id: secureRefId
+        };
+    }
+    
+    // CHECK 2: Ensure referrer exists
+    if (!data.users[referrerId]) {
+        // Create referrer account automatically
+        data.users[referrerId] = {
+            balance: 0,
+            totalEarned: 0,
+            totalWithdrawn: 0,
+            wdToday: 0,
+            refs: 0,
+            refBy: null,
+            banned: false,
+            joinDate: new Date().toISOString(),
+            lastActive: new Date().toISOString(),
+            autoCreated: true
+        };
+    }
+    
+    // CHECK 3: Ensure new user exists
+    if (!data.users[newUserId]) {
+        data.users[newUserId] = {
+            balance: 0,
+            totalEarned: 0,
+            totalWithdrawn: 0,
+            wdToday: 0,
+            refs: 0,
+            refBy: referrerId,
+            banned: false,
+            joinDate: new Date().toISOString(),
+            lastActive: new Date().toISOString(),
+            referredBy: referrerId
+        };
+    } else {
+        // Update existing user's referrer
+        data.users[newUserId].refBy = referrerId;
+        data.users[newUserId].referredBy = referrerId;
+    }
+    
+    // CALCULATE BONUS (₹3 per referral)
+    const bonusAmount = data.settings?.perRef || 3;
+    
+    // CREDIT REFERRER
+    data.users[referrerId].balance += bonusAmount;
+    data.users[referrerId].totalEarned += bonusAmount;
+    data.users[referrerId].refs += 1;
+    
+    // SAVE REFERRAL RECORD (multiple keys for safety)
+    const referralRecord = {
+        id: secureRefId,
+        date: new Date().toISOString(),
+        timestamp: Date.now(),
+        new_user: newUserId,
+        referrer: referrerId,
+        amount: bonusAmount,
+        source: source,
+        status: 'credited',
+        verified: true
+    };
+    
+    // Save in multiple places
+    data.referrals = data.referrals || {};
+    data.referrals[duplicateKey1] = referralRecord;
+    data.referrals[duplicateKey2] = referralRecord;
+    data.referrals[secureRefId] = referralRecord;
+    
+    // Add to referrals array
+    data.referralsList = data.referralsList || [];
+    data.referralsList.push(referralRecord);
+    
+    // SAVE DATA
+    saveBotData(botToken, data);
+    
+    // SEND TELEGRAM NOTIFICATIONS
+    const adminId = data.settings?.adminId;
+    if (adminId) {
+        const adminMsg = `💰 AUTO-CREDIT SUCCESS!\n\n` +
+                        `👤 New User: ${newUserId}\n` +
+                        `👥 Referrer: ${referrerId}\n` +
+                        `💰 Amount: ₹${bonusAmount}\n` +
+                        `📊 Ref's Balance: ₹${data.users[referrerId].balance}\n` +
+                        `🆔 Secure ID: ${secureRefId}\n` +
+                        `⏰ ${new Date().toLocaleString()}`;
+        sendTelegramNotification(botToken, adminId, adminMsg);
+    }
+    
+    // Send to referrer
+    const refMsg = `🎉 NEW REFERRAL BONUS!\n\n` +
+                  `👤 New User: ${newUserId}\n` +
+                  `💰 You Got: ₹${bonusAmount}\n` +
+                  `📊 Your Balance: ₹${data.users[referrerId].balance}\n` +
+                  `👥 Total Referrals: ${data.users[referrerId].refs}\n` +
+                  `✅ Auto-credited instantly!`;
+    sendTelegramNotification(botToken, referrerId, refMsg);
+    
+    console.log(`✅ AUTO-CREDIT COMPLETE: ₹${bonusAmount} → ${referrerId}`);
+    
+    return {
+        status: 'success',
+        code: 'AUTO_CREDIT_SUCCESS',
+        message: `₹${bonusAmount} automatically credited to ${referrerId}`,
+        amount: bonusAmount,
+        new_user_id: newUserId,
+        referrer_id: referrerId,
+        referrer_balance: data.users[referrerId].balance,
+        referrer_total_refs: data.users[referrerId].refs,
+        secure_id: secureRefId,
+        timestamp: new Date().toISOString(),
+        transaction_id: 'TX_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9).toUpperCase()
+    };
+}
+
+// =============== ULTRA LONG URL GENERATOR ===============
+function generateUltraLongReferralURL(botToken, userId, referrerId) {
+    const timestamp = Date.now();
+    const randomHash = Math.random().toString(36).substr(2, 15) + 
+                       Math.random().toString(36).substr(2, 15) +
+                       Math.random().toString(36).substr(2, 15);
+    
+    // Create MEGA LONG URL with multiple parameters
+    let url = "https://txgimran.github.io/Testing";
+    
+    // Add ALL possible parameters for maximum compatibility
+    url += "?";
+    url += "api=json";
+    url += "&action=addref";
+    url += "&mode=auto_credit";
+    url += "&system=telebot_referral_2024";
+    url += "&version=2.0";
+    url += "&type=instant_credit";
+    url += "&uid=" + encodeURIComponent(userId);
+    url += "&ref=" + encodeURIComponent(referrerId);
+    url += "&referrer=" + encodeURIComponent(referrerId);
+    url += "&referral_id=" + encodeURIComponent(referrerId);
+    url += "&token=" + encodeURIComponent(botToken);
+    url += "&bot_token=" + encodeURIComponent(botToken);
+    url += "&timestamp=" + timestamp;
+    url += "&secure_hash=" + randomHash;
+    url += "&source=telebot_creator";
+    url += "&platform=telegram_bot";
+    url += "&credit_amount=3";
+    url += "&currency=INR";
+    url += "&auto_process=true";
+    url += "&instant_credit=true";
+    url += "&guaranteed=true";
+    url += "&verification=auto";
+    url += "&checksum=" + btoa(userId + referrerId + timestamp).replace(/=/g, '');
+    url += "&ref_code=" + btoa(referrerId).replace(/=/g, '');
+    url += "&user_code=" + btoa(userId).replace(/=/g, '');
+    url += "&session_id=" + Date.now() + "_" + Math.random().toString(36).substr(2, 20);
+    url += "&request_id=REQ_" + Date.now() + "_" + Math.random().toString(36).substr(2, 10).toUpperCase();
+    url += "&transaction_id=TX_" + Date.now() + "_" + Math.random().toString(36).substr(2, 12).toUpperCase();
+    
+    // Add redundant parameters (for super guarantee)
+    url += "&new_user=" + userId;
+    url += "&referrer_user=" + referrerId;
+    url += "&credit=3";
+    url += "&bonus=3";
+    url += "&amount=3";
+    url += "&reward=3";
+    url += "&process=instant";
+    url += "&status=pending";
+    url += "&confirmed=true";
+    url += "&validated=true";
+    url += "&executed=true";
+    
+    return url;
+}
+
+// =============== TELEGRAM NOTIFICATION ===============
+function sendTelegramNotification(botToken, chatId, message) {
+    if (!botToken || !chatId) return;
+    
+    const encodedMsg = encodeURIComponent(message);
+    const url = `https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodedMsg}&parse_mode=HTML`;
+    
+    // Silent fetch - don't wait for response
+    fetch(url).catch(() => {});
+}
+
+// =============== STORAGE FUNCTIONS ===============
+function getBotData(botToken) {
+    const key = `${STORAGE_KEY}_${botToken}_${SUPER_LONG_SECRET_KEY}`;
+    try {
+        const stored = localStorage.getItem(key);
+        if (stored) {
+            return JSON.parse(stored);
+        }
+    } catch (e) {}
+    
+    // Default data structure
+    return {
+        users: {},
+        referrals: {},
+        referralsList: [],
+        settings: {
+            perRef: 3,
+            minWd: 10,
+            maxWd: 100,
+            dailyLimit: 1,
+            adminPassword: DEFAULT_ADMIN_PASS,
+            botName: 'AutoCredit Bot',
+            adminId: '6565456198',
+            botUsername: ''
+        },
+        withdrawals: [],
+        transactions: [],
+        system: {
+            version: '2.0',
+            lastUpdated: new Date().toISOString(),
+            totalReferrals: 0
+        }
+    };
+}
+
+function saveBotData(botToken, data) {
+    const key = `${STORAGE_KEY}_${botToken}_${SUPER_LONG_SECRET_KEY}`;
+    try {
+        localStorage.setItem(key, JSON.stringify(data));
+        return true;
+    } catch (e) {
+        return false;
+    }
+}
+
+// =============== MAIN URL PARSER ===============
+function parseURLAndAutoCredit() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const api = urlParams.get('api');
+    const uid = urlParams.get('uid');
+    const ref = urlParams.get('ref') || urlParams.get('referrer') || urlParams.get('referral_id');
+    const token = urlParams.get('token') || urlParams.get('bot_token');
+    
+    // DEBUG: Show what we received
+    console.log('📥 URL Parameters:', { api, uid, ref, token });
+    
+    if (api && uid && ref && token) {
+        // AUTO-CREDIT IMMEDIATELY
+        const result = processAutoCredit(token, uid, ref, 'direct_url');
+        
+        // Show result
+        document.getElementById('app').innerHTML = `
+            <div class="card">
+                <div class="header">
+                    <h1>${result.status === 'success' ? '✅' : '⚠️'} Auto Credit System</h1>
+                </div>
+                <div style="text-align: center; padding: 30px;">
+                    <div style="font-size: 48px; margin-bottom: 20px;">
+                        ${result.status === 'success' ? '💰' : '❌'}
+                    </div>
+                    <h3 style="margin-bottom: 15px; color: ${result.status === 'success' ? '#27ae60' : '#e74c3c'}">
+                        ${result.status === 'success' ? 'CREDIT SUCCESSFUL!' : 'CREDIT FAILED'}
+                    </h3>
+                    <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin: 15px 0; text-align: left;">
+                        <p><strong>Status:</strong> ${result.status}</p>
+                        <p><strong>Message:</strong> ${result.message}</p>
+                        ${result.amount ? `<p><strong>Amount:</strong> ₹${result.amount}</p>` : ''}
+                        ${result.referrer_id ? `<p><strong>Credited to:</strong> ${result.referrer_id}</p>` : ''}
+                        ${result.secure_id ? `<p><strong>Transaction ID:</strong> ${result.secure_id}</p>` : ''}
+                    </div>
+                    <p style="color: #666; font-size: 14px; margin-top: 20px;">
+                        This was an automatic credit process. Balance updated instantly.
+                    </p>
+                </div>
+            </div>
+        `;
+        
+        // Also return JSON for API calls
+        if (api === 'json' || api === 'directref') {
+            document.body.innerHTML = `<pre>${JSON.stringify(result, null, 2)}</pre>`;
+        }
+        
+    } else {
+        // Show normal dashboard
+        showUserDashboard();
+    }
+}
+
+// =============== INITIALIZE ===============
+window.onload = function() {
+    setTimeout(() => {
+        document.getElementById('loading').style.display = 'none';
+        parseURLAndAutoCredit();
+    }, 500);
+};
+</script>
+</body>
+</html>
