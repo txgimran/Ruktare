@@ -1,0 +1,1077 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Referral System</title>
+    <style>
+        /* =============== COMMON STYLES =============== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 450px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 15px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* =============== USER DASHBOARD STYLES =============== */
+        .dashboard-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .dashboard-header h1 {
+            color: #2c3e50;
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .user-id {
+            color: #7f8c8d;
+            font-size: 14px;
+            background: #f8f9fa;
+            padding: 5px 15px;
+            border-radius: 20px;
+            display: inline-block;
+            margin-top: 10px;
+        }
+
+        .balance-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-align: center;
+            padding: 25px 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+        }
+
+        .balance-label {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 5px;
+        }
+
+        .balance-amount {
+            font-size: 42px;
+            font-weight: 800;
+            margin: 10px 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .stat-box {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 12px;
+            border-radius: 10px;
+            text-align: center;
+            backdrop-filter: blur(5px);
+        }
+
+        .stat-value {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 3px;
+        }
+
+        .stat-label {
+            font-size: 10px;
+            opacity: 0.9;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .referral-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 2px dashed #dee2e6;
+        }
+
+        .referral-title {
+            color: #2c3e50;
+            font-size: 16px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .referral-link-box {
+            background: white;
+            padding: 12px;
+            border-radius: 10px;
+            margin: 12px 0;
+            border: 1px solid #e9ecef;
+            word-break: break-all;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            color: #495057;
+            text-align: center;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin: 8px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #00b09b 0%, #96c93d 100%);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .copy-btn {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            width: 100%;
+            margin-top: 8px;
+            transition: all 0.3s;
+        }
+
+        .copy-btn:hover {
+            background: #5a6268;
+        }
+
+        .telegram-btn {
+            background: #0088cc;
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+            width: 100%;
+            margin-top: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.3s;
+        }
+
+        .security-badge {
+            background: #d4edda;
+            color: #155724;
+            padding: 10px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-size: 11px;
+            text-align: center;
+            border: 1px solid #c3e6cb;
+        }
+
+        .referred-by {
+            background: #e3f2fd;
+            color: #1565c0;
+            padding: 8px 12px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-size: 12px;
+            text-align: center;
+            border: 1px solid #bbdefb;
+        }
+
+        /* =============== ADMIN PANEL STYLES =============== */
+        .admin-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+
+        .admin-header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #eee;
+        }
+
+        .admin-header h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .admin-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .admin-stat-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .admin-stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .admin-stat-label {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        .admin-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-left: 4px solid #667eea;
+        }
+
+        .admin-section h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        input:focus, select:focus {
+            border-color: #667eea;
+            outline: none;
+        }
+
+        .admin-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%);
+            color: white;
+        }
+
+        .users-list {
+            max-height: 400px;
+            overflow-y: auto;
+            margin-top: 15px;
+        }
+
+        .user-item {
+            background: white;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* =============== DIRECTREF API STYLES =============== */
+        .api-response {
+            font-family: 'Courier New', monospace;
+            font-size: 16px;
+            white-space: pre;
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 20px auto;
+            max-width: 600px;
+            border-left: 4px solid #667eea;
+        }
+
+        /* =============== LOGIN PAGE =============== */
+        .login-container {
+            max-width: 400px;
+            margin: 50px auto;
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 0 30px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        /* =============== RESPONSIVE =============== */
+        @media (max-width: 768px) {
+            .admin-stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .admin-container {
+                padding: 15px;
+            }
+            
+            .user-item {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .card {
+                padding: 20px;
+            }
+            
+            .balance-amount {
+                font-size: 36px;
+            }
+            
+            .stats-grid {
+                gap: 8px;
+            }
+            
+            .stat-value {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="app"></div>
+
+    <script>
+        // =============== CONFIGURATION ===============
+        const STORAGE_KEY = 'ref_system_v3';
+        const DEFAULT_ADMIN_PASS = 'admin123';
+        
+        // =============== URL PARSING ===============
+        function getUrlParams() {
+            const params = {};
+            const query = window.location.search.substring(1);
+            const pairs = query.split('&');
+            
+            pairs.forEach(pair => {
+                const [key, value] = pair.split('=');
+                if (key && value) {
+                    params[key] = decodeURIComponent(value);
+                }
+            });
+            
+            return params;
+        }
+        
+        // =============== STORAGE MANAGEMENT ===============
+        function getBotData(botToken) {
+            const key = `${STORAGE_KEY}_${botToken}`;
+            const stored = localStorage.getItem(key);
+            
+            if (stored) {
+                return JSON.parse(stored);
+            } else {
+                // Initialize with demo data
+                const initialData = {
+                    users: {
+                        '123456': {
+                            balance: 150,
+                            referrals: 5,
+                            referral_code: 'REF123',
+                            refBy: null,
+                            joinDate: new Date().toISOString(),
+                            totalEarned: 300,
+                            totalWithdrawn: 150,
+                            wdToday: 0
+                        },
+                        '789012': {
+                            balance: 75,
+                            referrals: 3,
+                            referral_code: 'REF789',
+                            refBy: '123456',
+                            joinDate: new Date().toISOString(),
+                            totalEarned: 150,
+                            totalWithdrawn: 75,
+                            wdToday: 0
+                        },
+                        '64656766': {
+                            balance: 50,
+                            referrals: 2,
+                            referral_code: 'REF456',
+                            refBy: null,
+                            joinDate: new Date().toISOString(),
+                            totalEarned: 100,
+                            totalWithdrawn: 50,
+                            wdToday: 0
+                        },
+                        'joyuu77': {
+                            balance: 200,
+                            referrals: 8,
+                            referral_code: 'JOY777',
+                            refBy: null,
+                            joinDate: new Date().toISOString(),
+                            totalEarned: 400,
+                            totalWithdrawn: 200,
+                            wdToday: 0
+                        }
+                    },
+                    referrals: {},
+                    settings: {
+                        botName: 'EarnBot Pro',
+                        perRef: 3,
+                        minWd: 10,
+                        maxWd: 100,
+                        adminPassword: DEFAULT_ADMIN_PASS,
+                        botUsername: '',
+                        autoRefer: true,
+                        deviceLock: false
+                    },
+                    withdrawals: []
+                };
+                
+                saveBotData(botToken, initialData);
+                return initialData;
+            }
+        }
+        
+        function saveBotData(botToken, data) {
+            const key = `${STORAGE_KEY}_${botToken}`;
+            localStorage.setItem(key, JSON.stringify(data));
+        }
+        
+        // =============== USER FUNCTIONS ===============
+        function getUserData(botToken, userId) {
+            const data = getBotData(botToken);
+            
+            if (!data.users[userId]) {
+                data.users[userId] = {
+                    balance: 0,
+                    referrals: 0,
+                    referral_code: generateReferralCode(userId),
+                    refBy: null,
+                    joinDate: new Date().toISOString(),
+                    totalEarned: 0,
+                    totalWithdrawn: 0,
+                    wdToday: 0
+                };
+                saveBotData(botToken, data);
+            }
+            
+            return data.users[userId];
+        }
+        
+        // =============== AUTO REFERRAL SYSTEM ===============
+        function processAutoReferral(botToken, newUserId, referrerId = null) {
+            const data = getBotData(botToken);
+            const now = new Date().toISOString();
+            
+            // If referrerId is provided, use it. Otherwise, auto-assign
+            if (!referrerId && data.settings.autoRefer) {
+                const users = Object.entries(data.users);
+                if (users.length > 0) {
+                    users.sort((a, b) => b[1].referrals - a[1].referrals);
+                    referrerId = users[0][0];
+                }
+            }
+            
+            // Check if user already exists
+            const existingUser = data.users[newUserId];
+            if (existingUser) {
+                if (existingUser.refBy) {
+                    return {
+                        status: 'failed',
+                        message: `User already referred by ${existingUser.refBy}`,
+                        user_id: newUserId,
+                        balance: existingUser.balance,
+                        referrals: existingUser.referrals,
+                        referral_code: existingUser.referral_code
+                    };
+                }
+                
+                // Update existing user with referrer
+                if (referrerId && referrerId !== newUserId) {
+                    existingUser.refBy = referrerId;
+                    
+                    if (data.users[referrerId]) {
+                        const bonus = data.settings.perRef || 3;
+                        data.users[referrerId].balance += bonus;
+                        data.users[referrerId].referrals += 1;
+                        data.users[referrerId].totalEarned = (data.users[referrerId].totalEarned || 0) + bonus;
+                        
+                        const refKey = `${referrerId}_${newUserId}`;
+                        data.referrals[refKey] = {
+                            date: now,
+                            amount: bonus,
+                            type: 'auto'
+                        };
+                        
+                        saveBotData(botToken, data);
+                        
+                        return {
+                            status: 'success',
+                            message: `Auto-referred by ${referrerId}. ₹${bonus} bonus given.`,
+                            user_id: newUserId,
+                            balance: existingUser.balance,
+                            referrals: existingUser.referrals,
+                            referral_code: existingUser.referral_code,
+                            referred_by: referrerId
+                        };
+                    }
+                }
+                
+                return {
+                    status: 'success',
+                    message: 'User already exists',
+                    user_id: newUserId,
+                    balance: existingUser.balance,
+                    referrals: existingUser.referrals,
+                    referral_code: existingUser.referral_code
+                };
+            }
+            
+            // Create new user
+            const referralCode = generateReferralCode(newUserId);
+            const newUser = {
+                balance: 0,
+                referrals: 0,
+                referral_code: referralCode,
+                refBy: referrerId,
+                joinDate: now,
+                totalEarned: 0,
+                totalWithdrawn: 0,
+                wdToday: 0
+            };
+            
+            data.users[newUserId] = newUser;
+            
+            // Give bonus to referrer if exists
+            if (referrerId && referrerId !== newUserId && data.users[referrerId]) {
+                const bonus = data.settings.perRef || 3;
+                data.users[referrerId].balance += bonus;
+                data.users[referrerId].referrals += 1;
+                data.users[referrerId].totalEarned = (data.users[referrerId].totalEarned || 0) + bonus;
+                
+                const refKey = `${referrerId}_${newUserId}`;
+                data.referrals[refKey] = {
+                    date: now,
+                    amount: bonus,
+                    type: 'auto'
+                };
+                
+                newUser.refBy = referrerId;
+            }
+            
+            saveBotData(botToken, data);
+            
+            return {
+                status: 'success',
+                message: referrerId ? `New user auto-referred by ${referrerId}` : 'New user created',
+                user_id: newUserId,
+                balance: 0,
+                referrals: 0,
+                referral_code: referralCode,
+                referred_by: referrerId || null
+            };
+        }
+        
+        // =============== REFERRAL CODE GENERATION ===============
+        function generateReferralCode(userId) {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let code = '';
+            
+            let seed = 0;
+            for (let i = 0; i < userId.length; i++) {
+                seed += userId.charCodeAt(i);
+            }
+            
+            for (let i = 0; i < 6; i++) {
+                const index = (seed + i * 13) % chars.length;
+                code += chars[index];
+            }
+            
+            return 'REF' + code;
+        }
+        
+        function getTelegramLink(botUsername, referralCode) {
+            if (!botUsername) return `https://t.me/bot?start=${referralCode}`;
+            botUsername = botUsername.replace('@', '').trim();
+            return `https://t.me/${botUsername}?start=${referralCode}`;
+        }
+        
+        // =============== USER DASHBOARD ===============
+        function renderUserDashboard(config) {
+            const data = getBotData(config.botToken);
+            const user = getUserData(config.botToken, config.uid);
+            const telegramLink = getTelegramLink(data.settings.botUsername, user.referral_code);
+            
+            document.getElementById('app').innerHTML = `
+                <div class="container">
+                    <div class="card">
+                        <div class="dashboard-header">
+                            <h1>💰 ${data.settings.botName || 'EarnBot'}</h1>
+                            <div class="user-id">ID: ${config.uid}</div>
+                        </div>
+                        
+                        ${user.refBy ? `
+                            <div class="referred-by">
+                                👤 Referred by: ${user.refBy}
+                            </div>
+                        ` : ''}
+                        
+                        <div class="balance-card">
+                            <div class="balance-label">Available Balance</div>
+                            <div class="balance-amount">₹${user.balance}</div>
+                            <div class="stats-grid">
+                                <div class="stat-box">
+                                    <div class="stat-value">${user.referrals}</div>
+                                    <div class="stat-label">Referrals</div>
+                                </div>
+                                <div class="stat-box">
+                                    <div class="stat-value">₹${user.totalEarned || 0}</div>
+                                    <div class="stat-label">Earned</div>
+                                </div>
+                                <div class="stat-box">
+                                    <div class="stat-value">₹${user.totalWithdrawn || 0}</div>
+                                    <div class="stat-label">Withdrawn</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="referral-section">
+                            <div class="referral-title">
+                                <span>🎯</span> Invite Friends & Earn ₹${data.settings.perRef}
+                            </div>
+                            <div class="referral-link-box">
+                                ${telegramLink}
+                            </div>
+                            <button class="telegram-btn" onclick="window.open('${telegramLink}', '_blank')">
+                                <span>📤</span> Share on Telegram
+                            </button>
+                            <button class="copy-btn" onclick="copyToClipboard('${telegramLink}')">
+                                📋 Copy Link
+                            </button>
+                        </div>
+                        
+                        <div class="security-badge">
+                            🔒 Auto Refer System • 💰 ₹${data.settings.perRef}/referral
+                        </div>
+                        
+                        <button class="btn btn-secondary" onclick="refreshDashboard()">
+                            🔄 Refresh
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text)
+                .then(() => alert('✅ Link copied!'))
+                .catch(() => {
+                    const textArea = document.createElement('textarea');
+                    textArea.value = text;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                    alert('✅ Link copied!');
+                });
+        }
+        
+        function refreshDashboard() {
+            location.reload();
+        }
+        
+        // =============== DIRECTREF API ===============
+        function renderDirectRef(config) {
+            const result = processAutoReferral(config.botToken, config.uid, config.ref);
+            
+            let responseText = `{'status' : '${result.status}', \n`;
+            responseText += `'message' : '${result.message}', \n`;
+            responseText += `'user_id' : '${result.user_id}', \n`;
+            responseText += `'balance' : '${result.balance}', \n`;
+            responseText += `'referrals' : '${result.referrals}', \n`;
+            responseText += `'referral_code' : '${result.referral_code}'`;
+            
+            if (result.referred_by) {
+                responseText += `, \n'referred_by' : '${result.referred_by}'`;
+            }
+            
+            responseText += ` }`;
+            
+            document.getElementById('app').innerHTML = `
+                <div class="api-response">${responseText}</div>
+            `;
+        }
+        
+        // =============== ADMIN PANEL ===============
+        function renderAdminLogin() {
+            const params = getUrlParams();
+            const botToken = params.token || '';
+            
+            document.getElementById('app').innerHTML = `
+                <div class="login-container">
+                    <h1>🔐 Admin Login</h1>
+                    <div style="background: #fff3cd; color: #856404; padding: 10px; border-radius: 5px; margin: 15px 0; font-size: 12px; border: 1px solid #ffeaa7;">
+                        💡 Default password: <strong>admin123</strong>
+                    </div>
+                    <div class="input-group">
+                        <input type="password" id="adminPassword" placeholder="Enter Admin Password" value="admin123">
+                    </div>
+                    <div class="input-group">
+                        <button class="btn btn-primary" onclick="checkAdminLogin('${botToken}')" style="width: 100%;">
+                            Login
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function checkAdminLogin(botToken) {
+            const password = document.getElementById('adminPassword').value;
+            const data = getBotData(botToken);
+            
+            if (password === data.settings.adminPassword) {
+                renderAdminPanel(botToken);
+            } else {
+                alert('❌ Wrong password! Try: admin123');
+            }
+        }
+        
+        function renderAdminPanel(botToken) {
+            const data = getBotData(botToken);
+            const totalUsers = Object.keys(data.users).length;
+            const totalBalance = Object.values(data.users).reduce((sum, user) => sum + user.balance, 0);
+            const totalReferrals = Object.keys(data.referrals).length;
+            const totalEarned = Object.values(data.users).reduce((sum, user) => sum + (user.totalEarned || 0), 0);
+            
+            document.getElementById('app').innerHTML = `
+                <div class="admin-container">
+                    <div class="admin-header">
+                        <h1>👑 ${data.settings.botName} - Admin Panel</h1>
+                        <div style="color: #666; font-size: 14px;">
+                            Bot Token: ${botToken.substring(0, 25)}...
+                        </div>
+                    </div>
+                    
+                    <div class="admin-stats-grid">
+                        <div class="admin-stat-box">
+                            <div class="admin-stat-value">${totalUsers}</div>
+                            <div class="admin-stat-label">Total Users</div>
+                        </div>
+                        <div class="admin-stat-box">
+                            <div class="admin-stat-value">₹${totalBalance}</div>
+                            <div class="admin-stat-label">Total Balance</div>
+                        </div>
+                        <div class="admin-stat-box">
+                            <div class="admin-stat-value">${totalReferrals}</div>
+                            <div class="admin-stat-label">Referrals</div>
+                        </div>
+                        <div class="admin-stat-box">
+                            <div class="admin-stat-value">₹${totalEarned}</div>
+                            <div class="admin-stat-label">Total Earned</div>
+                        </div>
+                    </div>
+                    
+                    <div class="admin-section">
+                        <h3>⚙️ Bot Settings</h3>
+                        <div class="input-group">
+                            <label>Bot Name</label>
+                            <input type="text" id="settingBotName" value="${data.settings.botName}">
+                        </div>
+                        <div class="input-group">
+                            <label>Referral Bonus (₹)</label>
+                            <input type="number" id="settingPerRef" value="${data.settings.perRef}">
+                        </div>
+                        <div class="input-group">
+                            <label>Bot Username (for links)</label>
+                            <input type="text" id="settingBotUsername" value="${data.settings.botUsername || ''}" placeholder="@YourBot">
+                        </div>
+                        <div class="input-group">
+                            <label style="display: flex; align-items: center; gap: 10px;">
+                                <input type="checkbox" id="settingAutoRefer" ${data.settings.autoRefer ? 'checked' : ''}>
+                                Enable Auto Referral System
+                            </label>
+                        </div>
+                        <div class="input-group">
+                            <label>Admin Password</label>
+                            <input type="password" id="settingAdminPassword" value="${data.settings.adminPassword}">
+                        </div>
+                        <button class="admin-btn btn-primary" onclick="saveSettings('${botToken}')">
+                            💾 Save Settings
+                        </button>
+                    </div>
+                    
+                    <div class="admin-section">
+                        <h3>👥 User Management (${totalUsers} users)</h3>
+                        <div style="margin-bottom: 15px;">
+                            <input type="text" id="searchUser" placeholder="Search user by ID or code..." 
+                                   onkeyup="filterUsers('${botToken}')" style="margin-bottom: 10px;">
+                            <div style="display: flex; gap: 10px;">
+                                <button class="admin-btn btn-secondary" onclick="addTestUser('${botToken}')">
+                                    ➕ Add Test User
+                                </button>
+                                <button class="admin-btn btn-danger" onclick="clearAllData('${botToken}')">
+                                    🗑️ Clear All Data
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="users-list" id="usersList">
+                            ${renderUsersList(data.users)}
+                        </div>
+                    </div>
+                    
+                    <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 2px solid #eee;">
+                        <button class="admin-btn btn-danger" onclick="renderAdminLogin()">
+                            🔓 Logout
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function renderUsersList(users) {
+            let html = '';
+            Object.entries(users).forEach(([userId, user]) => {
+                html += `
+                    <div class="user-item">
+                        <div style="flex: 1;">
+                            <div style="font-weight: bold; color: #2c3e50;">${userId}</div>
+                            <div style="display: flex; gap: 15px; font-size: 12px; color: #666; margin-top: 5px;">
+                                <span>Code: ${user.referral_code}</span>
+                                <span>Balance: ₹${user.balance}</span>
+                                <span>Referrals: ${user.referrals}</span>
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                            <button class="admin-btn btn-secondary" onclick="editUserBalance('${userId}')" style="padding: 5px 10px; font-size: 12px;">
+                                Edit
+                            </button>
+                            <button class="admin-btn btn-danger" onclick="deleteUser('${userId}')" style="padding: 5px 10px; font-size: 12px;">
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            return html || '<div style="text-align: center; padding: 20px; color: #666;">No users found</div>';
+        }
+        
+        function filterUsers(botToken) {
+            const searchTerm = document.getElementById('searchUser').value.toLowerCase();
+            const data = getBotData(botToken);
+            const filteredUsers = {};
+            
+            Object.entries(data.users).forEach(([userId, user]) => {
+                if (userId.toLowerCase().includes(searchTerm) || 
+                    user.referral_code.toLowerCase().includes(searchTerm)) {
+                    filteredUsers[userId] = user;
+                }
+            });
+            
+            document.getElementById('usersList').innerHTML = renderUsersList(filteredUsers);
+        }
+        
+        function saveSettings(botToken) {
+            const data = getBotData(botToken);
+            
+            data.settings.botName = document.getElementById('settingBotName').value || 'EarnBot';
+            data.settings.perRef = parseInt(document.getElementById('settingPerRef').value) || 3;
+            data.settings.botUsername = document.getElementById('settingBotUsername').value;
+            data.settings.autoRefer = document.getElementById('settingAutoRefer').checked;
+            data.settings.adminPassword = document.getElementById('settingAdminPassword').value || DEFAULT_ADMIN_PASS;
+            
+            saveBotData(botToken, data);
+            alert('✅ Settings saved!');
+            renderAdminPanel(botToken);
+        }
+        
+        function addTestUser(botToken) {
+            const userId = 'test_' + Math.floor(Math.random() * 10000);
+            const result = processAutoReferral(botToken, userId);
+            alert(`Test user added: ${userId}\nCode: ${result.referral_code}`);
+            renderAdminPanel(botToken);
+        }
+        
+        function clearAllData(botToken) {
+            if (confirm('⚠️ Delete ALL data?')) {
+                const key = `${STORAGE_KEY}_${botToken}`;
+                localStorage.removeItem(key);
+                alert('✅ All data cleared!');
+                renderAdminPanel(botToken);
+            }
+        }
+        
+        function editUserBalance(userId) {
+            const botToken = getUrlParams().token;
+            const data = getBotData(botToken);
+            const user = data.users[userId];
+            
+            const newBalance = prompt(`Edit balance for ${userId} (Current: ₹${user.balance}):`, user.balance);
+            if (newBalance !== null) {
+                user.balance = parseInt(newBalance) || 0;
+                saveBotData(botToken, data);
+                renderAdminPanel(botToken);
+            }
+        }
+        
+        function deleteUser(userId) {
+            if (confirm(`Delete user ${userId}?`)) {
+                const botToken = getUrlParams().token;
+                const data = getBotData(botToken);
+                delete data.users[userId];
+                saveBotData(botToken, data);
+                renderAdminPanel(botToken);
+            }
+        }
+        
+        // =============== MAIN RENDER FUNCTION ===============
+        function renderApp() {
+            const params = getUrlParams();
+            const mode = params.api;
+            const botToken = params.token;
+            const uid = params.uid;
+            const ref = params.ref;
+            
+            if (!botToken) {
+                document.getElementById('app').innerHTML = `
+                    <div class="api-response">{'status' : 'error', 
+'message' : 'Bot token required', 
+'user_id' : 'null', 
+'balance' : '0', 
+'referrals' : '0', 
+'referral_code' : 'null' }</div>
+                `;
+                return;
+            }
+            
+            switch(mode) {
+                case 'directref':
+                    if (!uid) {
+                        document.getElementById('app').innerHTML = `
+                            <div class="api-response">{'status' : 'failed', 
+'message' : 'User ID (uid) required', 
+'user_id' : 'null', 
+'balance' : '0', 
+'referrals' : '0', 
+'referral_code' : 'null' }</div>
+                        `;
+                    } else {
+                        renderDirectRef({ botToken, uid, ref });
+                    }
+                    break;
+                    
+                case 'user':
+                    if (!uid) {
+                        document.getElementById('app').innerHTML = `
+                            <div class="container">
+                                <div class="card">
+                                    <div class="dashboard-header">
+                                        <h1>❌ Error</h1>
+                                        <p>User ID required</p>
+                                        <p style="font-size: 12px; color: #666; margin-top: 10px;">
+                                            Use: ?api=user&uid=USER_ID&token=BOT_TOKEN
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        renderUserDashboard({ botToken, uid });
+                    }
+                    break;
+                    
+                case 'admin':
+                    renderAdminLogin();
+                    break;
+                    
+                default:
+                    document.getElementById('app').innerHTML = `
+                        <div class="api-response">{'status' : 'error', 
+'message' : 'Invalid API mode. Use api=directref, api=user, or api=admin', 
+'user_id' : 'null', 
+'balance' : '0', 
+'referrals' : '0', 
+'referral_code' : 'null' }</div>
+                    `;
+            }
+        }
+        
+        // =============== INITIALIZE ===============
+        window.onload = function() {
+            renderApp();
+        };
+    </script>
+</body>
+  </html>
